@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Recorder, DictationButton } from "../../components/Recorder";
 import { api, useAiStatus, verdictLabel } from "../../components/Api";
 import { DemoNotice, Workspace } from "../../components/Workspace";
 
@@ -19,10 +20,13 @@ export default function AnalyzePage() {
   const [report, setReport] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [recKey, setRecKey] = useState(0);
+  const [fromRecording, setFromRecording] = useState(false);
   const aiStatus = useAiStatus();
   const aiType = aiStatus?.ai_analysis && ["text", "link", "image"].includes(type);
 
-  function changeType(next) { setType(next); setReport(null); setMessage(""); }
+  function changeType(next) { setType(next); setFile(null); setFromRecording(false); setRecKey((k) => k + 1); setReport(null); setMessage(""); }
+  function chooseRecorded(next) { setFromRecording(Boolean(next)); setFile(next || null); setMessage(""); }
   function chooseFile(next) {
     if (!next) { setFile(null); return; }
     if (!allowed[type].has(next.type)) { setFile(null); setMessage(`Unsupported ${type} format.`); return; }
@@ -47,7 +51,7 @@ export default function AnalyzePage() {
     finally { setBusy(false); }
   }
 
-  function clear() { setText(""); setUrl(""); setFile(null); setReport(null); setMessage(""); }
+  function clear() { setText(""); setUrl(""); setFile(null); setFromRecording(false); setRecKey((k) => k + 1); setReport(null); setMessage(""); }
 
   return <Workspace active="/analyze" title="Analyze content" description="Submit text, links, or media for verification">
     <main className="mx-auto max-w-4xl space-y-5 p-5 md:p-8">
@@ -56,9 +60,11 @@ export default function AnalyzePage() {
         <div role="tablist" aria-label="Content type" className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {["text", "image", "audio", "video", "link"].map((name) => <button type="button" role="tab" aria-selected={type === name} key={name} onClick={() => changeType(name)} className={`rounded-lg px-3 py-2.5 text-sm font-bold capitalize ${type === name ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}>{name}</button>)}
         </div>
-        {type === "text" && <label className="block space-y-2 text-sm font-bold">Text to review<textarea required maxLength={20000} rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste a claim, article, or post for a preliminary review." className="w-full rounded-xl border border-slate-300 p-3 font-normal" /></label>}
+        {type === "text" && <div className="space-y-3"><label className="block space-y-2 text-sm font-bold">Text to review<textarea required maxLength={20000} rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste a claim, article, or post for a preliminary review." className="w-full rounded-xl border border-slate-300 p-3 font-normal" /></label><DictationButton onAppend={(spoken) => setText((prev) => ((prev ? prev.trimEnd() + " " : "") + spoken).slice(0, 20000))} onError={setMessage} /></div>}
         {type === "link" && <label className="block space-y-2 text-sm font-bold">Public URL<input required type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.org/article" className="w-full rounded-xl border border-slate-300 p-3 font-normal" /><span className="block text-xs font-normal text-slate-500">{aiStatus?.ai_analysis ? "The page is fetched and its claims checked against other sources." : "URLs are saved for your report but are not fetched or checked."}</span></label>}
-        {["image", "audio", "video"].includes(type) && <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-6 text-center"><span className="font-bold text-slate-800">{file ? file.name : `Choose ${type} file`}</span><span className="text-xs text-slate-500">Maximum 10 MB · file bytes are processed in memory and not retained</span><input className="sr-only" type="file" accept={type === "image" ? "image/png,image/jpeg,image/webp,image/gif" : `${type}/*`} onChange={(e) => chooseFile(e.target.files?.[0])} /></label>}
+        {["audio", "video"].includes(type) && <Recorder key={`${type}-${recKey}`} kind={type} onFile={chooseRecorded} onError={setMessage} />}
+        {["audio", "video"].includes(type) && <p className="text-center text-xs font-bold uppercase tracking-wider text-slate-400">or upload a file</p>}
+        {["image", "audio", "video"].includes(type) && <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-6 text-center"><span className="font-bold text-slate-800">{file && !fromRecording ? file.name : `Choose ${type} file`}</span><span className="text-xs text-slate-500">Maximum 10 MB · file bytes are processed in memory and not retained</span><input className="sr-only" type="file" accept={type === "image" ? "image/png,image/jpeg,image/webp,image/gif" : `${type}/*`} onChange={(e) => { setFromRecording(false); chooseFile(e.target.files?.[0]); }} /></label>}
         {message && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{message}</p>}
         {busy && <div role="status" className="flex items-center gap-3 text-sm text-indigo-700"><span className="size-4 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-700" />{aiType ? "Claude is reading the content and searching the web for evidence. This usually takes 30–120 seconds…" : "Analyzing available signals…"}</div>}
         <div className="flex justify-end gap-3"><button type="button" onClick={clear} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">Clear</button><button disabled={busy} className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">Analyze</button></div>
