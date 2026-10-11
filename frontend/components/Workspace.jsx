@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Activity, FileClock, LayoutDashboard, LogOut, Settings, ShieldAlert,
-  ShieldCheck, Sparkles, Waves,
+  ShieldCheck, Sparkles,
 } from "lucide-react";
 import { api, useAiStatus } from "./Api";
 
@@ -52,15 +52,11 @@ export function Workspace({ active, title, description, children }) {
             </Link>
           ))}
         </nav>
-        <div className="mt-5 rounded-xl bg-slate-950 p-4 text-white md:mt-auto">
-          {aiStatus?.ai_analysis ? <>
+        {/* Shown only once the server confirms AI is active; hidden while loading or when it is off. */}
+        {aiStatus?.ai_analysis && <div className="mt-5 rounded-xl bg-slate-950 p-4 text-white md:mt-auto">
             <p className="flex items-center gap-2 text-sm font-bold"><Sparkles size={15} className="text-emerald-400" /> AI fact-check active</p>
             <p className="mt-2 text-xs leading-5 text-slate-300">{aiStatus.ai_model} verifies claims with live web search.</p>
-          </> : <>
-            <p className="flex items-center gap-2 text-sm font-bold"><Waves size={15} /> Demo analysis mode</p>
-            <p className="mt-2 text-xs leading-5 text-slate-300">Add an AI API key (ANTHROPIC_API_KEY or LLM_API_KEY) in the server settings to enable AI fact-checking.</p>
-          </>}
-        </div>
+        </div>}
       </aside>
       <div className="min-w-0 md:col-start-2 md:ml-0">
         <header className="sticky top-0 z-10 flex min-h-20 items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur md:px-8">

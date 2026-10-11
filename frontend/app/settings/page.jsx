@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, useAiStatus } from "../../components/Api";
+import { api } from "../../components/Api";
 import { DemoNotice, Workspace } from "../../components/Workspace";
 
 const defaults = {
@@ -18,7 +18,6 @@ export default function SettingsPage() {
     store_audit_trail: true,
   });
   const [message, setMessage] = useState("");
-  const aiStatus = useAiStatus();
 
   useEffect(() => {
     api("/api/settings").then((data) => {
@@ -62,14 +61,6 @@ export default function SettingsPage() {
           <Toggle label="Store audit trail" checked={verification.store_audit_trail} onChange={(value) => setVerification({ ...verification, store_audit_trail: value })} />
           <button className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Save verification settings</button>
         </form>
-        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="font-bold">Model configuration</h2>
-          {(aiStatus?.ai_provider === "claude"
-            ? [`Text & link fact-checking · ${aiStatus.ai_model} + web search`, "Image OCR, AI-generation and claim checks · Claude vision", "Speech transcripts · Fact-checked when transcription is enabled", "Video frames and deepfake checks · Sampled frames reviewed by Claude", "Independent source verification · Live web search"]
-            : aiStatus?.ai_analysis
-            ? [`Text fact-checking · ${aiStatus.ai_model} (model knowledge, no web search)`, "Links · Page is fetched and its text fact-checked", aiStatus.ai_vision ? "Images and video frames · Vision model checks for AI generation, edits and on-screen text" : "Images · Metadata only (set LLM_VISION_MODEL for vision checks)", "Speech transcripts · Fact-checked when transcription is enabled", "Independent source verification · Unavailable (set ANTHROPIC_API_KEY for web search)"]
-            : ["Text patterns · Demo/Mock", "Image OCR and forensics · Unavailable", "Speech-to-text and voice forensics · Unavailable", "Video frames and deepfake checks · Unavailable", "Independent source verification · Unavailable (set ANTHROPIC_API_KEY or LLM_API_KEY)"]).map((item) => <p key={item} className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{item}</p>)}
-        </section>
         <section className="space-y-3 rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5 shadow-sm xl:col-span-2">
           <h2 className="font-bold">Browser extension · Feed filter</h2>
           <p className="text-sm leading-6 text-slate-600">Sign in to the extension with this account and it hides posts and videos on YouTube, Instagram, Facebook and X (also Reddit and LinkedIn) that the AI judges fake, plus anything the platform itself labels as AI-made (&quot;AI info&quot;, &quot;Made with AI&quot;, &quot;Altered or synthetic content&quot;).</p>
@@ -95,10 +86,6 @@ export default function SettingsPage() {
           </div>
           <a href="/fake-news-detector-extension.zip" download className="inline-block rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Download extension (.zip)</a>
           <p className="text-xs leading-5 text-slate-500">Works in the browser versions of these sites, not inside the Instagram, YouTube, Facebook or X phone apps (no app allows that). Videos are judged from their title, caption and the platform&apos;s AI labels, not by analysing the frames. If the AI provider is unavailable only platform-labeled AI content is hidden.</p>
-        </section>
-        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="font-bold">API configuration</h2><p className="text-sm leading-6 text-slate-600">The Next.js frontend uses a same-origin API proxy to the Python service. Configure provider URLs and secrets in the server environment, never in browser code.</p>
-          <a href="/api/openapi-schema" target="_blank" rel="noreferrer" className="inline-block font-bold text-indigo-700">View API schema →</a>
         </section>
       </div>
     </main>
