@@ -55,7 +55,7 @@ export function Workspace({ active, title, description, children }) {
         {/* Shown only once the server confirms AI is active; hidden while loading or when it is off. */}
         {aiStatus?.ai_analysis && <div className="mt-5 rounded-xl bg-slate-950 p-4 text-white md:mt-auto">
             <p className="flex items-center gap-2 text-sm font-bold"><Sparkles size={15} className="text-emerald-400" /> AI fact-check active</p>
-            <p className="mt-2 text-xs leading-5 text-slate-300">{aiStatus.ai_model} verifies claims with live web search.</p>
+            <p className="mt-2 text-xs leading-5 text-slate-300">{aiStatus.ai_provider === "claude" ? `${aiStatus.ai_model} verifies claims with live web search.` : `${aiStatus.ai_model} checks claims from its own knowledge (no live web search).`}</p>
         </div>}
       </aside>
       <div className="min-w-0 md:col-start-2 md:ml-0">
@@ -87,7 +87,9 @@ export function StatCard({ label, value, note, icon: Icon = Activity }) {
 export function DemoNotice({ mode }) {
   const aiStatus = useAiStatus();
   if (mode ? mode === "AI Fact-Check" : aiStatus?.ai_analysis) {
-    return <p className="flex gap-2 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-xs leading-5 text-indigo-950"><Sparkles size={17} className="shrink-0" />AI fact-check: text, links, images, audio, and video are checked by Claude against live web sources. Audio and video are transcribed locally and video is reviewed through sampled frames; voice cloning and lip-sync are not detected. Verdicts are AI-assisted judgments; review the cited sources before acting.</p>;
+    return <p className="flex gap-2 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-xs leading-5 text-indigo-950"><Sparkles size={17} className="shrink-0" />{aiStatus?.ai_provider === "claude"
+      ? "AI fact-check: text, links, images, audio, and video are checked by Claude against live web sources."
+      : "AI fact-check: text, links, images, audio, and video are checked by a language model using its own knowledge, without live web search, so very recent events may be marked uncertain."} Audio and video are transcribed locally and video is reviewed through sampled frames; voice cloning and lip-sync are not detected. Verdicts are AI-assisted judgments; verify important claims before acting.</p>;
   }
   return <p className="flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900"><ShieldAlert size={17} className="shrink-0" />Demo/Mock Analysis: no calibrated truth model is active. Risk signals are not proof of falsehood, and factual confidence is not estimated.</p>;
 }

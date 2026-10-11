@@ -23,7 +23,7 @@ export default function DashboardPage() {
       <DemoNotice />
       <section aria-label="Analysis totals" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Total analyses" value={summary.total_analyzed} note="Saved reports" />
-        <StatCard label="Text" value={summary.text_analyses} note="Text submissions" />
+        <StatCard label="Text & links" value={(summary.text_analyses || 0) + (summary.link_analyses || 0)} note={`${summary.text_analyses || 0} text · ${summary.link_analyses || 0} links`} />
         <StatCard label="Images" value={summary.image_analyses} note="Image submissions" icon={Image} />
         <StatCard label="Audio / video" value={(summary.audio_analyses || 0) + (summary.video_analyses || 0)} note={`${summary.audio_analyses || 0} audio · ${summary.video_analyses || 0} video`} icon={Music2} />
         <StatCard label="Likely fake" value={summary.likely_fake} note="Needs corroborating evidence" icon={ShieldAlert} />
