@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../../components/Api";
+import { PasswordInput } from "../../components/AuthForm";
 import { DemoNotice, Workspace } from "../../components/Workspace";
 
 const defaults = {
@@ -61,6 +62,7 @@ export default function SettingsPage() {
           <Toggle label="Store audit trail" checked={verification.store_audit_trail} onChange={(value) => setVerification({ ...verification, store_audit_trail: value })} />
           <button className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Save verification settings</button>
         </form>
+        <ChangePassword />
         <section className="space-y-3 rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5 shadow-sm xl:col-span-2">
           <h2 className="font-bold">Browser extension · Feed filter</h2>
           <p className="text-sm leading-6 text-slate-600">Sign in to the extension with this account and it hides posts and videos on YouTube, Instagram, Facebook and X (also Reddit and LinkedIn) that the AI judges fake, plus anything the platform itself labels as AI-made (&quot;AI info&quot;, &quot;Made with AI&quot;, &quot;Altered or synthetic content&quot;).</p>
@@ -90,6 +92,37 @@ export default function SettingsPage() {
       </div>
     </main>
   </Workspace>;
+}
+
+function ChangePassword() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState({ ok: false, text: "" });
+
+  async function submit(event) {
+    event.preventDefault();
+    if (next !== confirm) { setResult({ ok: false, text: "The new passwords do not match." }); return; }
+    setBusy(true); setResult({ ok: false, text: "" });
+    try {
+      const data = await api("/api/auth/change-password", { method: "POST", body: JSON.stringify({ current_password: current, new_password: next }) });
+      setCurrent(""); setNext(""); setConfirm("");
+      setResult({ ok: true, text: data.message });
+    } catch (error) { setResult({ ok: false, text: error.message }); }
+    finally { setBusy(false); }
+  }
+
+  return <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+    <div><h2 className="font-bold">Change password</h2><p className="mt-1 text-xs leading-5 text-slate-500">At least 8 characters. Other devices and the browser extension are signed out afterwards.</p></div>
+    <div className="grid gap-4 md:grid-cols-3">
+      <label className="block text-sm font-semibold">Current password<PasswordInput value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" /></label>
+      <label className="block text-sm font-semibold">New password<PasswordInput value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" /></label>
+      <label className="block text-sm font-semibold">Confirm new password<PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" /></label>
+    </div>
+    {result.text && <p role="status" className={`rounded-lg p-3 text-sm ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-700"}`}>{result.text}</p>}
+    <button disabled={busy} className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{busy ? "Saving…" : "Change password"}</button>
+  </form>;
 }
 
 function Toggle({ label, description, checked, onChange }) {

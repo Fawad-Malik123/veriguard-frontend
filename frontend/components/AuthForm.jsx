@@ -11,7 +11,7 @@ const details = {
   forgot: { title: "Reset your password", button: "Request reset" },
 };
 
-function PasswordInput({ value, onChange, autoComplete }) {
+export function PasswordInput({ value, onChange, autoComplete }) {
   const [visible, setVisible] = useState(false);
   return <span className="relative mt-1 block">
     <input required minLength={8} type={visible ? "text" : "password"} value={value} onChange={onChange} autoComplete={autoComplete} className="w-full rounded-lg border border-slate-300 p-3 pr-12 font-normal" />
@@ -59,6 +59,7 @@ export function AuthForm({ mode }) {
       <Link href="/" className="mb-7 flex items-center gap-3 font-extrabold text-slate-900"><span className="grid size-10 place-items-center rounded-xl bg-indigo-600 text-white"><ShieldCheck /></span>Fake News Detector</Link>
       <h1 className="text-2xl font-extrabold">{details[mode].title}</h1>
       <p className="mt-2 text-sm text-slate-500">Sign in with an email address or phone number.</p>
+      {mode === "forgot" && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Reset emails and SMS are not set up on this site yet. If you are still signed in somewhere, change your password in <b>Settings → Change password</b>. Otherwise ask the site owner to reset it.</p>}
       <form onSubmit={submit} className="mt-6 space-y-4">
         {mode === "register" && <label className="block text-sm font-semibold">Full name<input required maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label>}
         <label className="block text-sm font-semibold">Email or phone number<input required value={identity} onChange={(e) => setIdentity(e.target.value)} autoComplete="username" className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label>
