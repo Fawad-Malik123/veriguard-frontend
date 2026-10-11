@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { api } from "./Api";
 
 const details = {
@@ -10,6 +10,14 @@ const details = {
   register: { title: "Create your account", button: "Create account" },
   forgot: { title: "Reset your password", button: "Request reset" },
 };
+
+function PasswordInput({ value, onChange, autoComplete }) {
+  const [visible, setVisible] = useState(false);
+  return <span className="relative mt-1 block">
+    <input required minLength={8} type={visible ? "text" : "password"} value={value} onChange={onChange} autoComplete={autoComplete} className="w-full rounded-lg border border-slate-300 p-3 pr-12 font-normal" />
+    <button type="button" onClick={() => setVisible((v) => !v)} aria-label={visible ? "Hide password" : "Show password"} title={visible ? "Hide password" : "Show password"} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-500 hover:text-slate-800">{visible ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+  </span>;
+}
 
 export function AuthForm({ mode }) {
   const [message, setMessage] = useState("");
@@ -54,8 +62,8 @@ export function AuthForm({ mode }) {
       <form onSubmit={submit} className="mt-6 space-y-4">
         {mode === "register" && <label className="block text-sm font-semibold">Full name<input required maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label>}
         <label className="block text-sm font-semibold">Email or phone number<input required value={identity} onChange={(e) => setIdentity(e.target.value)} autoComplete="username" className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label>
-        {mode !== "forgot" && <label className="block text-sm font-semibold">Password<input required minLength={8} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label>}
-        {mode === "forgot" && resetToken && <><label className="block text-sm font-semibold">Development reset token<input value={resetToken} onChange={(e) => setResetToken(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label><label className="block text-sm font-semibold">New password<input required minLength={8} type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label></>}
+        {mode !== "forgot" && <label className="block text-sm font-semibold">Password<PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>}
+        {mode === "forgot" && resetToken && <><label className="block text-sm font-semibold">Development reset token<input value={resetToken} onChange={(e) => setResetToken(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-3 font-normal" /></label><label className="block text-sm font-semibold">New password<PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" /></label></>}
         <button disabled={busy} className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{busy ? "Please wait…" : details[mode].button}</button>
       </form>
       {message && <p role="status" className="mt-4 break-words rounded-lg bg-indigo-50 p-3 text-sm text-indigo-900">{message}</p>}
